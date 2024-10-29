@@ -1,5 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import { getReceiverSocketId,io } from "../socket/socket.js";
 
 export const sendMessage = async (req,res)=>{
     try{
@@ -29,13 +30,8 @@ export const sendMessage = async (req,res)=>{
         {
             conversation.messages.push(newMessage._id);
         }
-  
-         //SOCKET IO functionality will go here
 
-
-
-
-        //save them to our dB
+          //save them to our dB
         //this will not run in parallel
         // await conversation.save();
         // await newMessage.save();
@@ -43,6 +39,16 @@ export const sendMessage = async (req,res)=>{
         //this will run in parallel
         //kind of an optimization
         await Promise.all([conversation.save(),newMessage.save()]);
+  
+         //SOCKET IO functionality will go here
+          const receiverSocketId = getReceiverSocketId(receiverId);
+          if(receiverSocketId)
+          {
+             io.to(receiverSocketId).emit("newMessage",newMessage);//this will send event to a specific client
+          }
+
+
+
 
         res.status(200).json({newMessage});
     }
@@ -65,7 +71,7 @@ export const getMessages = async(req,res) =>{
          }).populate("messages"); //Not references but actual messages between those two people
 
          if(!conversation)
-            res.status(200).json([]);//agar dono ke bich main koi conversation nahi hua toh empty array
+            return res.status(200).json([]);//agar dono ke bich main koi conversation nahi hua toh empty array
 
          const messages = conversation.messages;//jitna bhi bhi messages hain un dono ke bich main woh isme de do
 

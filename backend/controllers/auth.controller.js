@@ -25,6 +25,7 @@ export const signup = async(req,res) =>{
       const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`;
       const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`;
 
+      //ab jab ban gaya naya user toh usko dB main store karlo
       const newUser = new User({
         fullName,
         username,
@@ -73,7 +74,7 @@ export const login = async(req,res)=>{
 
          if(!user || !isPasswordCorrect)
          {
-            res.status(400).json({error : "Invalid username or password"});
+            return res.status(400).json({error : "Invalid username or password"});
          }
 
          generateTokenAndSetCookie(user._id,res);
